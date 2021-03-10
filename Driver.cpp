@@ -78,8 +78,23 @@ DriverEntry(
 
     P("Module srv2.sys loaded at %p", pModuleBase);
 
+    MappedImportDescriptor KeyGenDesc;
+    if (FindImportByNameMapped(pModuleBase, "SmbCryptoCreateServerCipherKeys", &KeyGenDesc) < 0) {
+        P("Cannot find SmbCryptoCreateServerCipherKeys import in srv2 IAT");
+        return 0;
+    }
+    P("SmbCryptoCreateServerCipherKeys IAT entry at %p", KeyGenDesc.FirstThunk);
+
+
+    MappedImportDescriptor KeyInsertDesc;
+    if (FindImportByNameMapped(pModuleBase, "SmbCryptoKeyTableInsert", &KeyInsertDesc) < 0) {
+        P("Cannot find SmbCryptoKeyTableInsert import in srv2 IAT");
+        return 0;
+    }
+    P("SmbCryptoKeyTableInsert IAT entry at %p", KeyInsertDesc.FirstThunk);
+
     {
-        PVOID pIATEntry = ((PUINT8)pModuleBase + KEY_GEN_IAT_OFFSET);
+        PVOID pIATEntry = KeyGenDesc.FirstThunk;
         MemoryLocker ml(pIATEntry, sizeof(PVOID));
         PVOID p = ml.GetPointer();
         PVOID newFunc = &my_SmbCryptoCreateServerCipherKeys;
@@ -91,7 +106,7 @@ DriverEntry(
     }
 
     {
-        PVOID pIATEntry = ((PUINT8)pModuleBase + KEY_INSERT_IAT_OFFSET);
+        PVOID pIATEntry = KeyInsertDesc.FirstThunk;
         MemoryLocker ml(pIATEntry, sizeof(PVOID));
         PVOID p = ml.GetPointer();
         PVOID newFunc = &my_SmbCryptoKeyTableInsert;

@@ -172,3 +172,53 @@ out:
     return Status;
 }
 
+int FindImportByNameMapped(void* PEBuffer, const char* ImportName, MappedImportDescriptor* ImportDesc)
+{
+    if (!PEBuffer)
+        return -1;
+    if (!ImportName)
+        return -1;
+    if (!ImportDesc)
+        return -1;
+
+    memset(ImportDesc, 0, sizeof(MappedImportDescriptor));
+
+    IMAGE_DOS_HEADER* DosHeader;
+    IMAGE_NT_HEADERS* NTHeaders;
+    IMAGE_OPTIONAL_HEADER* OptionalHeader;
+    IMAGE_IMPORT_DESCRIPTOR* ImportDescriptor;
+
+    DosHeader = (IMAGE_DOS_HEADER*)PEBuffer;
+    NTHeaders = (IMAGE_NT_HEADERS*)((char*)PEBuffer + DosHeader->e_lfanew);
+    OptionalHeader = &NTHeaders->OptionalHeader;
+
+    if (!OptionalHeader->DataDirectory[IMAGE_DIRECTORY_ENTRY_IMPORT].Size)
+        return -1;
+
+    ImportDescriptor = (IMAGE_IMPORT_DESCRIPTOR*)((char*)PEBuffer + OptionalHeader->DataDirectory[IMAGE_DIRECTORY_ENTRY_IMPORT].VirtualAddress);
+    while (ImportDescriptor->Name)
+    {
+        void** OriginalFirstThunk = (void**)((char*)PEBuffer + ImportDescriptor->OriginalFirstThunk);
+        void** FirstThunk = (void**)((char*)PEBuffer + ImportDescriptor->FirstThunk);
+
+        if (!OriginalFirstThunk)
+            OriginalFirstThunk = FirstThunk;
+
+        for (; *OriginalFirstThunk; OriginalFirstThunk++, FirstThunk++)
+        {
+            if (!IMAGE_SNAP_BY_ORDINAL((unsigned long long) * OriginalFirstThunk))
+            {
+                IMAGE_IMPORT_BY_NAME* ImportByName = (IMAGE_IMPORT_BY_NAME*)((char*)PEBuffer + (unsigned long long) * OriginalFirstThunk);
+                if (!_stricmp(ImportByName->Name, ImportName))
+                {
+                    ImportDesc->OriginalFirstThunk = OriginalFirstThunk;
+                    ImportDesc->FirstThunk = FirstThunk;
+                    ImportDesc->ImportDescriptor = ImportDescriptor;
+                    return STATUS_SUCCESS;
+                }
+            }
+        }
+        ImportDescriptor++;
+    }
+    return -1;
+}
