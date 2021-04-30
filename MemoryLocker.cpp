@@ -8,6 +8,7 @@ MemoryLocker::MemoryLocker(void* pData, ULONG size)
     MmProbeAndLockPages(m_pMdl, KernelMode, IoReadAccess);
     m_pPointer = MmMapLockedPagesSpecifyCache(m_pMdl, KernelMode, MmNonCached, NULL, FALSE, NormalPagePriority);
     NTSTATUS status = MmProtectMdlSystemAddress(m_pMdl, PAGE_EXECUTE_READWRITE);
+    (void)status;
     ASSERT(NT_SUCCESS(status));
 }
 

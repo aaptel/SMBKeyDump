@@ -146,7 +146,7 @@ LogToFile(LPCSTR formatstring, ...)
     OBJECT_ATTRIBUTES   ObjectAttributes;
     IO_STATUS_BLOCK     IoStatusBlock;
 
-    RtlInitUnicodeString(&filePath, L"\\??\\C:\\logs.txt");
+    RtlInitUnicodeString(&filePath, L"\\??\\" LOG_FILE);
     InitializeObjectAttributes(&ObjectAttributes, &filePath, OBJ_CASE_INSENSITIVE | OBJ_KERNEL_HANDLE, NULL, NULL);
 
     Status = ZwCreateFile(&hFile, FILE_APPEND_DATA|SYNCHRONIZE, &ObjectAttributes,

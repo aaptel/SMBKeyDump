@@ -14,6 +14,8 @@ KernelGetProcAddress(
 	PCHAR pFunctionName
 );
 
+#define LOG_FILE L"C:\\SMBKeyDumpLog.txt"
+
 #define DBGP(x, ...) DbgPrint("[SMBKeyDump] " x "\n", ##__VA_ARGS__)
 #define P(x, ...) \
 	do { \
