@@ -31,7 +31,8 @@ __int64(__fastcall* real_SmbCryptoKeyTableInsert)(__int64, __int64, __int64, PVO
 // Our wrapper around it that will get called instead
 __int64 __fastcall my_SmbCryptoKeyTableInsert(__int64 a1, __int64 a2, __int64 sessId, PVOID* keyhandle)
 {
-    P("srvnet!SmbCryptoKeyTableInsert: SessionId=%llx", sessId);
+    PUINT8 id = (PUINT8)&sessId;
+    P("srvnet!SmbCryptoKeyTableInsert: SessionId=%02x %02x %02x %02x %02x %02x %02x %02x", id[0], id[1], id[2], id[3], id[4], id[5], id[6], id[7]);
     return real_SmbCryptoKeyTableInsert(a1, a2, sessId, keyhandle);
 }
 
